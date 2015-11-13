@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -16,32 +17,51 @@ namespace Tealium.Utility
 
         public static async Task<bool> Save<T>(T data, string fileName)
         {
-            //var x = await Windows.Storage.StorageFile.GetFileFromPathAsync(fileName);
-            using (var file = await ApplicationData.Current.LocalFolder.OpenStreamForWriteAsync(fileName, CreationCollisionOption.ReplaceExisting))
+            try
             {
-                if (file != null && file.CanWrite)
+                using (
+                    var file =
+                        await
+                            ApplicationData.Current.LocalFolder.OpenStreamForWriteAsync(fileName,
+                                CreationCollisionOption.ReplaceExisting))
                 {
-                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
-                    serializer.WriteObject(file, data);
-                    await file.FlushAsync();
-                    return true;
+                    if (file != null && file.CanWrite)
+                    {
+                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof (T));
+                        serializer.WriteObject(file, data);
+                        await file.FlushAsync();
+                        return true;
+                    }
                 }
             }
+            catch(Exception ex)
+            {
+                TealiumStatusLog.Error(ex.Message);
+            }
+
             return false;
         }
 
         public static async Task<T> Load<T>(string fileName)
         {
-            using (var file = await ApplicationData.Current.LocalFolder.OpenStreamForReadAsync(fileName))
+            try
             {
-                if (file != null && file.CanRead)
+                using (var file = await ApplicationData.Current.LocalFolder.OpenStreamForReadAsync(fileName))
                 {
-                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
-                    var contents = serializer.ReadObject(file);
+                    if (file != null && file.CanRead)
+                    {
+                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof (T));
+                        var contents = serializer.ReadObject(file);
 
-                    return (T)contents;
+                        return (T) contents;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                TealiumStatusLog.Error(ex.Message);
+            }
+
             return default(T);
         }
 

@@ -247,7 +247,7 @@ namespace Tealium.Utility
         }
 #endif
 
-        void queueTimer_Tick(object sender, object e)
+        async void queueTimer_Tick(object sender, object e)
         {
             if (requestQueue.IsEmpty || requestQueue.Size < config.EventBatchSize || !ConnectionUtility.IsOnline)
                 queueTimer.Stop();
@@ -266,7 +266,7 @@ namespace Tealium.Utility
                 {
                     TealiumStatusLog.Information(invokeScriptBatch);
 #if NETFX_CORE
-                    taggerWebView.InvokeScriptAsync("eval", new[] { invokeScriptBatch });
+                    await taggerWebView.InvokeScriptAsync("eval", new[] { invokeScriptBatch });
 #elif WINDOWS_PHONE
                     taggerWebView.InvokeScript("eval", new[] { invokeScriptBatch });
 #endif
